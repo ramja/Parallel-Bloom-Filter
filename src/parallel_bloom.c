@@ -4,11 +4,12 @@
 
 int hashData(int );
 
-int main(int argv, char * argv[]){
+int main(int argc, char * argv[]){
 int my_rank;
 int comm_sz;
 int source;
-int localResponse,totalResponse;
+int localResponse=0;
+int totalResponse=0;
 int dicLenght;
 //diccionario a considerar
 int diccionario[50]={3,5,9,14,25,33,41,45,57,67,68,69,71,73,74,75,77,84,86,89,93,94,99,103,107,113,114,117,123,129,130,133,137,139,143,146, 151,157,165,171};
@@ -22,8 +23,8 @@ dicLength=sizeof(diccionario);
 // recuperamos los parametros 
 // target: objetivo a buscar
 // nProcc: numero de procesos en paralelo
-nProcc=atoi(argv[2]);
-target=atoi(argv[1]);
+//nProcc=atoi(argv[2]);
+int target=atoi(argv[1]);
 
 MPI_Init(NULL,NULL);
 MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
@@ -34,8 +35,8 @@ if (my_rank!=0){
 }
 
 if (my_rank!=0){
-	dicChunkInit=(my_rank-1)(dicLength)/nProcc;
-	dicChunkEnd=(my_rank)(dicLength)/nProcc;	
+	dicChunkInit=(my_rank-1)*(dicLength)/comm_sz;
+	dicChunkEnd=(my_rank)*(dicLength)/comm_sz;	
 	localResponse=0;
 	for (iter=dicChunkInit;iter<dicChunkEnd;iter++){
 		if (hashData(diccionario[iter])==hashData(target)){
@@ -52,7 +53,7 @@ if (my_rank!=0){
 	}
 }
 if(my_rank==0){
-	prinftf("Integral from %f: %f = %.15e\n",a,b,total_int);
+	printf("Encontrado %d\n",totalResponse);
 	
 }
 MPI_Finalize();
