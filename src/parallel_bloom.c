@@ -54,9 +54,11 @@ int main(int argc, char * argv[]) {
 					&& hashFinalData(diccionario[iter], target, 3)) {
 				localResponse = iter;
 				MPI_Send(&localResponse, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
+				break;
 			}
 		}
-		MPI_Send(&localResponse, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
+		if (localResponse==-1)
+			MPI_Send(&localResponse, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
 	} else {
 		i = 0;
 		encontrado = 0;
