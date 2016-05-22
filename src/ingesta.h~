@@ -1,0 +1,6 @@
+#ifndef INGESTA_H_   /* Include guard */
+#define INGESTA_H_
+
+typedef struct dicto;
+
+#endif // FOO_H_
