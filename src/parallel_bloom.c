@@ -1,68 +1,103 @@
 #include<stdio.h>
 #include<mpi.h>
+#include <string.h>
 
+#define MAX_DIC_LEN 10000
+#define TMANO_DIC 30
+#define TMANO_LISTA 20
+//int hashData(int );
+int hashData(const char * stem, const char* stem2, int num);
 
-int hashData(int );
-
-int main(int argc, char * argv[]){
-int my_rank;
-int comm_sz;
-int source;
-int localResponse=0;
-int totalResponse=0;
-int dicLenght;
+int main(int argc, char * argv[]) {
+	int my_rank;
+	int comm_sz;
+	int source;
+	int localResponse = 0;
+	int totalResponse = 0;
+	int dicLenght;
 //diccionario a considerar
-int diccionario[50]={3,5,9,14,25,33,41,45,57,67,68,69,71,73,74,75,77,84,86,89,93,94,99,103,107,113,114,117,123,129,130,133,137,139,143,146, 151,157,165,171};
+	char * diccionario[MAX_DIC_LEN] = { "azar", "atarugamiento", "atarugar",
+			"atasajada", "atasajado", "atasajar", "atascada", "atascadero",
+			"atascado", "atascamiento", "atascar", "atasco", "atasquería",
+			"ataúd", "ataudada", "ataudado", "ataujía", "ataujiada",
+			"ataujiado", "ataurique", "ataviar", "atávica", "atávico", "atavío",
+			"atavismo", "ataxia", "atáxica", "atáxico", "atea", "atear" };
 
-
-int iter;
-int dicLength;
-int dicChunkInit,dicChunkEnd;
-
-dicLength=sizeof(diccionario);
+	int iter;
+	int dicLength;
+	int dicChunkInit, dicChunkEnd;
+	int listaPalabras[TMANO_LISTA] = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+			-1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
+	int encontrado;
+	dicLength = sizeof(diccionario);
 // recuperamos los parametros 
 // target: objetivo a buscar
 // nProcc: numero de procesos en paralelo
 //nProcc=atoi(argv[2]);
-int target=atoi(argv[1]);
+	char * target = argv[1];
+	int i;
+	MPI_Init(NULL, NULL);
+	MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+	MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
 
-MPI_Init(NULL,NULL);
-MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
-MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
+	if (my_rank != 0) {
 
-if (my_rank!=0){
+	}
 
-}
-
-if (my_rank!=0){
-	dicChunkInit=(my_rank-1)*(dicLength)/comm_sz;
-	dicChunkEnd=(my_rank)*(dicLength)/comm_sz;	
-	localResponse=0;
-	for (iter=dicChunkInit;iter<dicChunkEnd;iter++){
-		if (hashData(diccionario[iter])==hashData(target)){
-			localResponse=1;
+	if (my_rank != 0) {
+		dicChunkInit = (my_rank - 1);
+		localResponse = -1;
+		for (iter = dicChunkInit; iter < TMANO_DIC; iter = iter + comm_sz) {
+			if (hashData(diccionario[iter], target, 3)
+					&& hashFinalData(diccionario[iter], target, 3)) {
+				localResponse = iter;
+				MPI_Send(&localResponse, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
+			}
+		}
+		MPI_Send(&localResponse, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
+	} else {
+		i = 0;
+		encontrado = 0;
+		for (source = 1; source < comm_sz; source++) {
+			MPI_Recv(&localResponse, 1, MPI_INT, source, 0, MPI_COMM_WORLD,
+					MPI_STATUS_IGNORE);
+			if (!(localResponse < 0) && i < TMANO_LISTA) {
+				listaPalabras[i++] = localResponse;
+				encontrado = 1;
+			}
 		}
 	}
-	MPI_Send(&localResponse, 1, MPI_INT,0,0,MPI_COMM_WORLD);
-} else {
-	totalResponse=localResponse;
-	for(source=1; source < comm_sz; source++){
-		MPI_Recv(&localResponse,1,MPI_INT,source,0,MPI_COMM_WORLD,
-			MPI_STATUS_IGNORE);
-		totalResponse+=localResponse;
+	if (my_rank == 0) {
+		printf("Encontrado %d\n", encontrado);
+		if (encontrado == 1) {
+			i = 0;
+			while (listaPalabras[i] >= 0) {
+				printf("-%s\n", diccionario[listaPalabras[i++]]);
+			}
+		}
+
 	}
-}
-if(my_rank==0){
-	printf("Encontrado %d\n",totalResponse);
-	
-}
-MPI_Finalize();
-return 0;
-
-
+	MPI_Finalize();
+	return 0;
 
 }
 
-int hashData(int num){
-	return num;
+int hashData(const char * stem1, const char* stem2, int num) {
+	if (!memcmp(stem1, stem2, num)) {
+		return 1;
+	}
+
+	return 0;
+}
+int hashFinalData(const char * stem1, const char* stem2, int num) {
+	int len1 = strlen(stem1);
+	int len2 = strlen(stem2);
+	if (len1 - num > 0 && len2 - num > 0) {
+
+		if (!memcmp(stem1 + len1 - num, stem2 + len2 - num, num)) {
+			return 1;
+		}
+	}
+
+	return 0;
 }
