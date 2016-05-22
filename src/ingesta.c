@@ -3,55 +3,57 @@
 #include <string.h>
 
 #define FILE_NAME "dict_spanish.txt"
-typedef struct dicto{
-    char **values;
-    int length;
+#define MAX_DIC_LEN 100000
+typedef struct dicto {
+	char **values;
+	int length;
 } dicto;
 
-dicto buildDicto(){
-	
-	dicto d;
-        FILE * infile;
-        char line[121];
-        char ** info = NULL;
-        int llen;
-        int counter = 0;
+int buildDicto(char ** d) {
 
-        int backdown;
+	FILE * infile;
+	char line[121];
+	char ** info = NULL;
+	int llen;
+	int counter = 0;
 
-        infile = fopen(FILE_NAME,"r");
+	int backdown;
 
-        while (fgets(line,120,infile)) {
+	infile = fopen(FILE_NAME, "r");
 
-        // Allocate memory for pointer to line just added
-                d.values = realloc(d.values,(counter+1) * sizeof(char *));
-        // And allocate memory for that line itself!
-                llen = strlen(line);
-                d.values[counter] = calloc(sizeof(char),llen+1);
-        // Copy the line just read into that memory
-                strcpy(d.values[counter],line);
+	while (fgets(line, 120, infile)) {
 
-                //printf("%d characters in line %d \n",llen,counter);
-                counter++;
-        }
+		// Allocate memory for pointer to line just added
+		//  d= realloc(d,(counter+1) * sizeof(char *));
+		// And allocate memory for that line itself!
+		llen = strlen(line);
+		d[counter] = calloc(sizeof(char), llen + 1);
+		line[llen - 1] = '\0';
+		// Copy the line just read into that memory
+		strcpy(d[counter], line);
 
-        //for (backdown = counter-1; backdown >= 0; backdown--) {
-        //        printf("%d: %s",backdown,info[backdown]);
-        //        }
-	
-	d.length = counter;
-	printf("%d\n",d.length);
-	return d;
+		//printf("%d characters in line %d \n",llen,counter);
+		counter++;
+	}
+
+	//for (backdown = counter-1; backdown >= 0; backdown--) {
+	//        printf("%d: %s",backdown,info[backdown]);
+	//        }
+
+	int length = counter;
+//	printf("%d\n",length);
+	return length;
 }
 //#include "Functions.h"
 /*
-int main(){
-	dicto d;
-	printf("Aqui");
-	d = buildDicto();
-	
-	int i;
-	for (i = 0; i < d.length; i++) {
-                printf("%d: %s",i,d.values[i]);
-                }
-}*/
+ int main(){
+ char * d[MAX_DIC_LEN ];
+ int n = buildDicto(d);
+ printf("%d\n",n);
+ 
+ int i;
+ for (i = 0; i < n; i++) {
+ printf("%d: %s",i,d[i]);
+ }
+ }
+ */
